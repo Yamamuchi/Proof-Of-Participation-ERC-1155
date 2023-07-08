@@ -8,13 +8,20 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract POP is ERC1155, ERC1155Burnable, Ownable {
 
+    using Strings for uint256;
+
     uint256 public constant POP_BRONZE = 0;
     uint256 public constant POP_SILVER = 1;
     uint256 public constant POP_GOLD = 2;
 
+    string public baseURI;
     string public contractURI;
 
-    constructor(string memory _contractURI) ERC1155(_contractURI) {
+    event BaseURIChanged(address sender, string newBaseURI);
+    event ContractURIChanged(address sender, string newContractURI);
+
+    constructor(string memory _baseURI, string memory _contractURI) ERC1155(_contractURI) {
+        baseURI = _baseURI;
         contractURI = _contractURI;
 
         _mint(msg.sender, POP_BRONZE, 100, "");
@@ -43,12 +50,17 @@ contract POP is ERC1155, ERC1155Burnable, Ownable {
         );
     }
 
-
     function uri(uint256 _tokenId) public pure override returns (string memory) {
-        return string(abi.encodePacked("ipfs://QmcyEvXcautKftdeVrYhHLjRrHKbyR4q7cx4vtrouPnzBa/", Strings.toString(_tokenId)));
+        return string(abi.encodePacked(contractURI, _tokenId.toString()));
     }
 
-    function setContractURI(string calldata _contractURI) public onlyOwner {
-        contractURI = _contractURI;
+    function setBaseURI(string calldata _newBaseURI) public onlyOwner {
+        baseURI = _newBaseURI;
+        emit BaseURIChanged(msg.sender, _newBaseURI);
+    }
+
+    function setContractURI(string calldata _newContractURI) public onlyOwner {
+        contractURI = _newContractURI;
+        emit ContractURIChanged(msg.sender, _newContractURI);
     }
 }
